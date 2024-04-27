@@ -58,6 +58,41 @@ std::string readFromFile(const std::string& filename)
     }
     return content;
 }
+Citation* fillCitation(Citation* citation) {
+    // todo
+}
+std::vector<Citation*> parseCitations (std::string& input, std::vector<Citation*>& citations) {
+    int flag = 0;
+    auto id = ""s;
+    std::vector <std::string> idInput{};
+    std::vector<Citation*> parsedCitations{};
+    for (auto s : input) {
+        if (flag) {
+            id += s;
+        }
+        if (s == '[') {
+            flag += 1;
+        }
+        if (s == ']') {
+            flag -= 1;
+            idInput.push_back(id);
+            id = ""s;
+        }
+        if (flag != 0 and flag != 1) {
+            std::exit(1);
+        }
+    }
+    for (auto c : citations) {
+        if (std::find(idInput.begin(), idInput.end(), c->getId()) != idInput.end()) {
+            parsedCitations.push_back(fillCitation(c));
+        }
+    }
+    return parsedCitations;
+
+}
+
+
+
 class Output
 {
 private:
@@ -118,6 +153,8 @@ int main(int argc, char** argv)
     {
         input = readFromFile(argv[3]);
     }
+
+    printedCitations = parseCitations(input, citations);
 
     out << input; // print the paragraph first
     out << "\nReferences:\n";
