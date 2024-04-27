@@ -6,7 +6,7 @@
 #include "citation.h"
 
 #include "third_parties/nlohmann/json.hpp"
-
+using namespace std::literals;
 std::vector<Citation*> loadCitations(const std::string& filename)
 {
     // FIXME: load citations from file
@@ -44,6 +44,7 @@ std::string readFromFile(const std::string& filename)
     std::string line;
     if (filename == "-")
     {
+        std::cout << "Enter the text:\n";
         while (std::getline(std::cin, line))
         {
             content += line + "\n";
@@ -93,10 +94,7 @@ int main(int argc, char** argv)
         std::cerr << e.what() << std::endl;
         std::exit(1);
     }
-    for (auto c : citations)
-    {
-        std::cout << c->getId();
-    }
+
     std::vector<Citation*> printedCitations{};
 
     // FIXME: read all input to the string, and process citations in the input text
@@ -105,16 +103,16 @@ int main(int argc, char** argv)
 
     // ...
     Output out {&std::cout};
-    if (argv[3] == "-o")
+    if (argv[3] == "-o"s)
     {
         if (argc != 6)
         {
             std::cerr << "Invalid arguments" << std::endl;
             std::exit(1);
         }
+        input = readFromFile(argv[5]);
         auto os = std::ofstream{argv[4]};
         out = &os;
-        input = readFromFile(argv[5]);
     }
     else
     {
