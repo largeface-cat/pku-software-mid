@@ -166,10 +166,10 @@ int main(int argc, char** argv)
 
     if (argv[3] == "-o"s)
     {
-
-        std::fstream file;
-        file.open(argv[4], std::ios::out | std::ios::trunc);
-        std::cout.rdbuf(file.rdbuf());
+        freopen(argv[4], "w", stdout);
+        // std::fstream file;
+        // file.open(argv[4], std::ios::out | std::ios::trunc);
+        // std::cout.rdbuf(file.rdbuf());
     }
 
     std::cout << input; // print the paragraph first
