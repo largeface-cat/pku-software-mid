@@ -14,7 +14,6 @@ std::vector<Citation*> loadCitations(const std::string& filename)
     std::ifstream file{filename};
 
     nlohmann::json data = nlohmann::json::parse(file);
-    std::cout<<data<<std::endl;
     // std::cout << data << std::endl;
     try
     {
@@ -164,9 +163,15 @@ int main(int argc, char** argv)
     // ...
     if (argv[3] == "-o"s) input = readFromFile(argv[5]);
     else input = readFromFile(argv[3]);
+    if (input.empty())
+    {
+        std::exit(1);
+    }
     printedCitations = parseCitations(input, citations);
-    std::cout<<input<<std::endl;
-    std::cout.flush();
+
+    // std::cout<<input<<std::endl;
+    // std::cout.flush();
+
     if (argv[3] == "-o"s)
     {
         freopen(argv[4], "w", stdout);
