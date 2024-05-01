@@ -173,6 +173,7 @@ int main(int argc, char** argv)
     // ...
     if (argv[3] == "-o"s) input = readFromFile(argv[5]);
     else input = readFromFile(argv[3]);
+    std::cout << input;
     printedCitations = parseCitations(input, citations);
 
     Output out{&std::cout};
