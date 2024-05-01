@@ -48,7 +48,7 @@ std::string readFromFile(const std::string& filename)
     std::string line;
     if (filename == "-")
     {
-        std::cout << "Enter the text:\n";
+        // std::cout << "Enter the text:\n";
         while (std::getline(std::cin, line)) // todo check if it works
         {
             content += line + "\n";
@@ -170,20 +170,16 @@ int main(int argc, char** argv)
 
 
     // ...
+    if (argv[3] == "-o"s) input = readFromFile(argv[5]);
+    else input = readFromFile(argv[3]);
+    printedCitations = parseCitations(input, citations);
+
     Output out{&std::cout};
     if (argv[3] == "-o"s)
     {
-
-        input = readFromFile(argv[5]);
         auto os = std::ofstream{argv[4]};
         out = &os;
     }
-    else
-    {
-        input = readFromFile(argv[3]);
-    }
-
-    printedCitations = parseCitations(input, citations);
 
     out << input; // print the paragraph first
     out << "\nReferences:\n";
