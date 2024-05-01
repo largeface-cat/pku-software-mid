@@ -67,7 +67,7 @@ std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>
 {
     int flag = 0;
     auto id = ""s;
-    std::vector<std::string> idInput{};
+    std::set<std::string> idInput{};
     std::vector<Citation*> parsedCitations{};
     for (auto s : input)
     {
@@ -79,7 +79,7 @@ std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>
         if (s == ']')
         {
             flag -= 1;
-            idInput.push_back(id);
+            idInput.insert(id);
             id = ""s;
         }
         if (flag == 1)
@@ -92,9 +92,11 @@ std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>
         }
     }
     int found = 0;
+    std::sort(citations.begin(), citations.end(),
+              [](Citation* a, Citation* b) { return a->getId() < b->getId(); });
     for (auto c : citations)
     {
-        if (std::find(idInput.begin(), idInput.end(), c->getId()) != idInput.end())
+        if (idInput.find(c->getId()) != idInput.end())
         {
             try
             {
@@ -102,13 +104,11 @@ std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>
             }
             catch (std::exception& e)
             {
-                std::cerr << e.what() << std::endl;
                 std::exit(1);
             }
             parsedCitations.push_back(c);
             found += 1;
         }
-
     }
     if (found != idInput.size())
     {
@@ -149,9 +149,9 @@ public:
 int main(int argc, char** argv)
 {
     // "docman", "-c", "citations.json", "input.txt"
-    if (argc < 4 or argv[1] != std::string{"-c"} or (argv[3] == "-o"s and argc != 6))
+    if ((argc != 4 and argc != 6) or argv[1] != std::string{"-c"} or (argv[3] == "-o"s and argc != 6) or (argv[3] !=
+        "-o"s and argc != 4))
     {
-        std::cout << "Invalid arguments" << std::endl;
         std::exit(1);
     }
     std::vector<Citation*> citations{};
@@ -161,7 +161,6 @@ int main(int argc, char** argv)
     }
     catch (std::exception& e)
     {
-        std::cerr << e.what() << std::endl;
         std::exit(1);
     }
 
@@ -189,7 +188,7 @@ int main(int argc, char** argv)
     for (auto c : printedCitations)
     {
         // FIXME: print citation
-        out << "["+c->getId()+"] "+c->info() << "\n";
+        out << "[" + c->getId() + "] " + c->info() << "\n";
     }
 
     for (auto c : citations)
