@@ -13,7 +13,7 @@ std::vector<Citation*> loadCitations(const std::string& filename)
     std::vector<Citation*> vec_citations;
     std::ifstream file{filename};
     nlohmann::json data = nlohmann::json::parse(file);
-    std::cout << data << std::endl;
+    // std::cout << data << std::endl;
     for (auto& item : data["citations"])
     {
         int type;
@@ -124,30 +124,6 @@ std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>
 }
 
 
-class Output
-{
-private:
-    std::ostream* output;
-
-public:
-    explicit Output(std::ostream* output) : output{output}
-    {
-    }
-
-    template <typename T>
-    Output& operator<<(const T& t)
-    {
-        *output << t;
-        return *this;
-    }
-
-    Output& operator=(std::ofstream* file)
-    {
-        output = file;
-        return *this;
-    }
-};
-
 int main(int argc, char** argv)
 {
     // "docman", "-c", "citations.json", "input.txt"
@@ -177,20 +153,21 @@ int main(int argc, char** argv)
     else input = readFromFile(argv[3]);
     printedCitations = parseCitations(input, citations);
 
-    Output out{&std::cout};
     if (argv[3] == "-o"s)
     {
-        auto os = std::ofstream{argv[4]};
-        out = &os;
+
+        std::fstream file;
+        file.open(argv[4], std::ios::out | std::ios::trunc);
+        std::cout.rdbuf(file.rdbuf());
     }
 
-    out << input; // print the paragraph first
-    out << "\nReferences:\n";
+    std::cout << input; // print the paragraph first
+    std::cout << "\nReferences:\n";
 
     for (auto c : printedCitations)
     {
         // FIXME: print citation
-        out << "[" + c->getId() + "] " + c->info() << "\n";
+        std::cout << "[" + c->getId() + "] " + c->info() << "\n";
     }
 
     for (auto c : citations)
