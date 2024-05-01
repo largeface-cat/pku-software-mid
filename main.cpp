@@ -35,6 +35,14 @@ std::vector<Citation*> loadCitations(const std::string& filename)
             citation = new ArticleCitation{3, id, item};
             break;
         }
+        try
+        {
+            citation->fill();
+        }
+        catch (std::exception& e)
+        {
+            std::exit(1);
+        }
         vec_citations.push_back(citation);
     }
     return vec_citations;
@@ -98,14 +106,7 @@ std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>
     {
         if (idInput.find(c->getId()) != idInput.end())
         {
-            try
-            {
-                c->fill();
-            }
-            catch (std::exception& e)
-            {
-                std::exit(1);
-            }
+
             parsedCitations.push_back(c);
             found += 1;
         }
@@ -173,7 +174,6 @@ int main(int argc, char** argv)
     // ...
     if (argv[3] == "-o"s) input = readFromFile(argv[5]);
     else input = readFromFile(argv[3]);
-    std::cout << input;
     printedCitations = parseCitations(input, citations);
 
     Output out{&std::cout};
