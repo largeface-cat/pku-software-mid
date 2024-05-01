@@ -2,7 +2,6 @@
 #include <iostream>
 #include <vector>
 #include <exception>
-#include "utils.hpp"
 #include "citation.h"
 
 #include "third_parties/nlohmann/json.hpp"
@@ -27,13 +26,13 @@ std::vector<Citation*> loadCitations(const std::string& filename)
         default:
             std::exit(1);
         case 1:
-            citation = new BookCitation{1, id};
+            citation = new BookCitation{1, id, item["isbn"].get<std::string>()};
             break;
         case 2:
-            citation = new WebCitation{2, id};
+            citation = new WebCitation{2, id, item["url"].get<std::string>()};
             break;
         case 3:
-            citation = new ArticleCitation{3, id};
+            citation = new ArticleCitation{3, id, item};
             break;
         }
         vec_citations.push_back(citation);
@@ -63,11 +62,6 @@ std::string readFromFile(const std::string& filename)
     return content;
 }
 
-Citation* fillCitation(Citation* citation)
-{
-    // todo
-    return citation;
-}
 
 std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>& citations)
 {
@@ -102,9 +96,17 @@ std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>
     {
         if (std::find(idInput.begin(), idInput.end(), c->getId()) != idInput.end())
         {
-            parsedCitations.push_back(fillCitation(c));
+            try
+            {
+                c->fill();
+            }
+            catch (std::exception& e)
+            {
+                std::cerr << e.what() << std::endl;
+                std::exit(1);
+            }
+            parsedCitations.push_back(c);
             found += 1;
-            continue;
         }
 
     }
@@ -126,7 +128,7 @@ private:
     std::ostream* output;
 
 public:
-    Output(std::ostream* output) : output{output}
+    explicit Output(std::ostream* output) : output{output}
     {
     }
 
@@ -149,7 +151,7 @@ int main(int argc, char** argv)
     // "docman", "-c", "citations.json", "input.txt"
     if (argc < 4 or argv[1] != std::string{"-c"} or (argv[3] == "-o"s and argc != 6))
     {
-        std::cerr << "Invalid arguments" << std::endl;
+        std::cout << "Invalid arguments" << std::endl;
         std::exit(1);
     }
     std::vector<Citation*> citations{};
@@ -187,7 +189,7 @@ int main(int argc, char** argv)
     for (auto c : printedCitations)
     {
         // FIXME: print citation
-        out << c->getId() << "\n";
+        out << "["+c->getId()+"] "+c->info() << "\n";
     }
 
     for (auto c : citations)
