@@ -1,11 +1,9 @@
 #pragma once
 #ifndef CITATION_H
 #define CITATION_H
-#include "utils.hpp"
 #include <cpp-httplib/httplib.h>
-#include <nlohmann/json.hpp>
 
-inline httplib::Client client{"http://docman.lcpu.dev"};
+inline httplib::Client client{API_ENDPOINT};
 
 class Citation
 {

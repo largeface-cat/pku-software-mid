@@ -4,6 +4,7 @@
 
 #include <string>
 #include <sstream>
+#include <fstream>
 
 const std::string API_ENDPOINT{"http://docman.lcpu.dev"};
 
@@ -25,6 +26,25 @@ inline std::string encodeUriComponent(const std::string& s) {
         }
     }
     return encoded;
+}
+
+inline std::string readFromFile(const std::string& filename)
+{
+    std::string content, line;
+    if (filename == "-")
+    {
+        while (std::getline(std::cin, line))
+        {
+            content += line + "\n";
+        }
+        return content;
+    }
+    std::ifstream file{filename};
+    while (std::getline(file, line))
+    {
+        content += line + "\n";
+    }
+    return content;
 }
 
 #endif 

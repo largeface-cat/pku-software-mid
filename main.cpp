@@ -3,12 +3,12 @@
 
 #include <iostream>
 #include <vector>
-#include "citation.h"
 #include "third_parties/nlohmann/json.hpp"
+#include "utils.hpp"
+#include "citation.h"
 
 using namespace std::literals;
 
-std::string readFromFile(const std::string& filename);
 std::vector<Citation*> loadCitations(const std::string& filename);
 std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>& citations);
 
@@ -51,24 +51,7 @@ int main(int argc, char** argv)
 }
 
 
-std::string readFromFile(const std::string& filename)
-{
-    std::string content, line;
-    if (filename == "-")
-    {
-        while (std::getline(std::cin, line))
-        {
-            content += line + "\n";
-        }
-        return content;
-    }
-    std::ifstream file{filename};
-    while (std::getline(file, line))
-    {
-        content += line + "\n";
-    }
-    return content;
-}
+
 
 std::vector<Citation*> loadCitations(const std::string& filename)
 {
