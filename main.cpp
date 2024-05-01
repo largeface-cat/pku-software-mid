@@ -13,6 +13,7 @@ std::vector<Citation*> loadCitations(const std::string& filename)
     std::vector<Citation*> vec_citations;
     std::ifstream file{filename};
     nlohmann::json data = nlohmann::json::parse(file);
+    std::cout << data << std::endl;
     for (auto& item : data["citations"])
     {
         int type;
