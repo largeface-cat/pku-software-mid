@@ -147,7 +147,7 @@ public:
 int main(int argc, char** argv)
 {
     // "docman", "-c", "citations.json", "input.txt"
-    if (argc < 4 or argv[1] != std::string{"-c"})
+    if (argc < 4 or argv[1] != std::string{"-c"} or (argv[3] == "-o"s and argc != 6))
     {
         std::cerr << "Invalid arguments" << std::endl;
         std::exit(1);
@@ -173,11 +173,7 @@ int main(int argc, char** argv)
     Output out{&std::cout};
     if (argv[3] == "-o"s)
     {
-        if (argc != 6)
-        {
-            std::cerr << "Invalid arguments" << std::endl;
-            std::exit(1);
-        }
+
         input = readFromFile(argv[5]);
         auto os = std::ofstream{argv[4]};
         out = &os;
