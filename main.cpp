@@ -12,7 +12,9 @@ std::vector<Citation*> loadCitations(const std::string& filename)
     // FIXME: load citations from file
     std::vector<Citation*> vec_citations;
     std::ifstream file{filename};
+
     nlohmann::json data = nlohmann::json::parse(file);
+    std::cout<<data<<std::endl;
     // std::cout << data << std::endl;
     try
     {
@@ -163,13 +165,11 @@ int main(int argc, char** argv)
     if (argv[3] == "-o"s) input = readFromFile(argv[5]);
     else input = readFromFile(argv[3]);
     printedCitations = parseCitations(input, citations);
-
+    std::cout<<input<<std::endl;
+    std::cout.flush();
     if (argv[3] == "-o"s)
     {
         freopen(argv[4], "w", stdout);
-        // std::fstream file;
-        // file.open(argv[4], std::ios::out | std::ios::trunc);
-        // std::cout.rdbuf(file.rdbuf());
     }
 
     std::cout << input; // print the paragraph first
