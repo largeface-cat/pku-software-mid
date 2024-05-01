@@ -1,75 +1,62 @@
-#include <fstream>
+#define EXIT std::exit(1);
+#define TEST(expr) try{expr;} catch (std::exception& e) {EXIT}
+
 #include <iostream>
 #include <vector>
-#include <exception>
 #include "citation.h"
-
 #include "third_parties/nlohmann/json.hpp"
+
 using namespace std::literals;
 
-std::vector<Citation*> loadCitations(const std::string& filename)
-{
-    // FIXME: load citations from file
-    std::vector<Citation*> vec_citations;
-    std::ifstream file{filename};
+std::string readFromFile(const std::string& filename);
+std::vector<Citation*> loadCitations(const std::string& filename);
+std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>& citations);
 
-    nlohmann::json data = nlohmann::json::parse(file);
-    // std::cout << data << std::endl;
-    try
+int main(int argc, char** argv)
+{
+    if ((argc != 4 and argc != 6) or argv[1] != std::string{"-c"}
+        or (argv[3] == "-o"s and argc != 6)
+        or (argv[3] != "-o"s and argc != 4))
+        EXIT
+
+    std::vector<Citation*> citations{};
+    TEST(citations = loadCitations(argv[2]);)
+
+    std::vector<Citation*> printedCitations{};
+
+    std::string input{};
+
+    if (argv[3] == "-o"s) input = readFromFile(argv[5]);
+    else input = readFromFile(argv[3]);
+    if (input.empty())
+        EXIT
+
+    printedCitations = parseCitations(input, citations);
+
+    if (argv[3] == "-o"s) freopen(argv[4], "w", stdout);
+
+    std::cout << input;
+    std::cout << "\nReferences:\n";
+
+    for (auto c : printedCitations)
     {
-        if (data["citations"].empty())
-        {
-            std::exit(1);
-        }
+        std::cout << "[" + c->getId() + "] " + c->info() + "\n";
     }
-    catch (std::exception& e)
+
+    for (auto c : citations)
     {
-        std::exit(1);
+        delete c;
     }
-    for (auto& item : data["citations"])
-    {
-        int type;
-        Citation* citation;
-        std::string id = item["id"].get<std::string>();
-        type = (item["type"].get<std::string>() == "book") +
-            2 * (item["type"].get<std::string>() == "webpage") +
-            3 * (item["type"].get<std::string>() == "article");
-        switch (type)
-        {
-        default:
-            std::exit(1);
-        case 1:
-            citation = new BookCitation{1, id, item["isbn"].get<std::string>()};
-            break;
-        case 2:
-            citation = new WebCitation{2, id, item["url"].get<std::string>()};
-            break;
-        case 3:
-            citation = new ArticleCitation{3, id, item};
-            break;
-        }
-        try
-        {
-            citation->fill();
-        }
-        catch (std::exception& e)
-        {
-            std::exit(1);
-        }
-        vec_citations.push_back(citation);
-    }
-    return vec_citations;
+    return 0;
 }
 
 
 std::string readFromFile(const std::string& filename)
 {
-    std::string content;
-    std::string line;
+    std::string content, line;
     if (filename == "-")
     {
-        // std::cout << "Enter the text:\n";
-        while (std::getline(std::cin, line)) // todo check if it works
+        while (std::getline(std::cin, line))
         {
             content += line + "\n";
         }
@@ -83,6 +70,42 @@ std::string readFromFile(const std::string& filename)
     return content;
 }
 
+std::vector<Citation*> loadCitations(const std::string& filename)
+{
+    std::vector<Citation*> vec_citations;
+    Citation* citation;
+    std::ifstream file{filename};
+    int type;
+
+    auto data = nlohmann::json::parse(file);
+    TEST(if (data["citations"].empty()) {EXIT})
+
+    for (auto& item : data["citations"])
+    {
+        auto id = item["id"].get<std::string>();
+        type = (item["type"].get<std::string>() == "book") +
+            2 * (item["type"].get<std::string>() == "webpage") +
+            3 * (item["type"].get<std::string>() == "article");
+        switch (type)
+        {
+        default:
+            EXIT
+        case 1:
+            citation = new BookCitation{1, id, item["isbn"].get<std::string>()};
+            break;
+        case 2:
+            citation = new WebCitation{2, id, item["url"].get<std::string>()};
+            break;
+        case 3:
+            citation = new ArticleCitation{3, id, item};
+            break;
+        }
+        TEST(citation->fill();)
+        vec_citations.push_back(citation);
+    }
+    return vec_citations;
+}
+
 
 std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>& citations)
 {
@@ -90,16 +113,16 @@ std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>
     auto id = ""s;
     std::set<std::string> idInput{};
     std::vector<Citation*> parsedCitations{};
-    for (auto s : input)
+    for (const auto s : input)
     {
         if (s == '[')
         {
-            flag += 1;
+            flag++;
             continue;
         }
         if (s == ']')
         {
-            flag -= 1;
+            flag--;
             idInput.insert(id);
             id = ""s;
         }
@@ -108,86 +131,21 @@ std::vector<Citation*> parseCitations(std::string& input, std::vector<Citation*>
             id += s;
         }
         if (flag != 0 and flag != 1)
-        {
-            std::exit(1);
-        }
+            EXIT
     }
-    int found = 0;
+
+    int found_cnt = 0;
     std::sort(citations.begin(), citations.end(),
               [](Citation* a, Citation* b) { return a->getId() < b->getId(); });
     for (auto c : citations)
     {
         if (idInput.find(c->getId()) != idInput.end())
         {
-
             parsedCitations.push_back(c);
-            found += 1;
+            found_cnt += 1;
         }
     }
-    if (found != idInput.size())
-    {
-        std::exit(1);
-    }
-    if (flag != 0)
-    {
-        std::exit(1);
-    }
+    if (found_cnt != idInput.size() or flag != 0)
+        EXIT
     return parsedCitations;
-}
-
-
-int main(int argc, char** argv)
-{
-    // "docman", "-c", "citations.json", "input.txt"
-    if ((argc != 4 and argc != 6) or argv[1] != std::string{"-c"} or (argv[3] == "-o"s and argc != 6) or (argv[3] !=
-        "-o"s and argc != 4))
-    {
-        std::exit(1);
-    }
-    std::vector<Citation*> citations{};
-    try
-    {
-        citations = loadCitations(argv[2]);
-    }
-    catch (std::exception& e)
-    {
-        std::exit(1);
-    }
-
-    std::vector<Citation*> printedCitations{};
-
-    // FIXME: read all input to the string, and process citations in the input text
-    std::string input{};
-
-
-    // ...
-    if (argv[3] == "-o"s) input = readFromFile(argv[5]);
-    else input = readFromFile(argv[3]);
-    if (input.empty())
-    {
-        std::exit(1);
-    }
-    printedCitations = parseCitations(input, citations);
-
-    // std::cout<<input<<std::endl;
-    // std::cout.flush();
-
-    if (argv[3] == "-o"s)
-    {
-        freopen(argv[4], "w", stdout);
-    }
-
-    std::cout << input; // print the paragraph first
-    std::cout << "\nReferences:\n";
-
-    for (auto c : printedCitations)
-    {
-        // FIXME: print citation
-        std::cout << "[" + c->getId() + "] " + c->info() << "\n";
-    }
-
-    for (auto c : citations)
-    {
-        delete c;
-    }
 }

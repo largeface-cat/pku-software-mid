@@ -2,14 +2,11 @@
 #ifndef CITATION_H
 #define CITATION_H
 #include "utils.hpp"
-#include <string>
-#include <utility>
 #include <cpp-httplib/httplib.h>
 #include <nlohmann/json.hpp>
 
-inline httplib::Client client{"http://docman.lcpu.dev"}; // 与该IP地址进行连接，并使用HTTP协议。
+inline httplib::Client client{"http://docman.lcpu.dev"};
 
-// 在我们的utils.hpp直接定义了API_ENDPOINT，可以直接client{ API_ENDPOINT }.
 class Citation
 {
 private:
@@ -33,17 +30,16 @@ private:
     std::string isbn, author, title, publisher, year;
 
 public:
-    BookCitation(const int& t, std::string& id, std::string isbn) : Citation(t, id), isbn(std::move(isbn))
+    BookCitation(const int& t, std::string& id, std::string isbn)
+        : Citation(t, id), isbn(std::move(isbn))
     {
-    };
+    }
 
     void fill() override
     {
         auto isbn_response = client.Get("/isbn/" + encodeUriComponent(isbn));
         if (isbn_response->status != 200)
-        {
-            std::exit(1);
-        }
+            EXIT
         nlohmann::json data = nlohmann::json::parse(isbn_response->body);
         author = data["author"].get<std::string>();
         title = data["title"].get<std::string>();
@@ -63,17 +59,16 @@ private:
     std::string title, url;
 
 public:
-    WebCitation(const int& t, std::string& id, std::string url) : Citation(t, id), url(std::move(url))
+    WebCitation(const int& t, std::string& id, std::string url)
+        : Citation(t, id), url(std::move(url))
     {
-    };
+    }
 
     void fill() override
     {
         auto web_response = client.Get("/title/" + encodeUriComponent(url));
         if (web_response->status != 200)
-        {
-            std::exit(1);
-        }
+            EXIT
         nlohmann::json data = nlohmann::json::parse(web_response->body);
         title = data["title"].get<std::string>();
     };
@@ -91,9 +86,10 @@ private:
     nlohmann::json data;
 
 public:
-    ArticleCitation(const int& t, std::string& id, nlohmann::json& data) : Citation(t, id), data(data)
+    ArticleCitation(const int& t, std::string& id, nlohmann::json& data)
+        : Citation(t, id), data(data)
     {
-    };
+    }
 
     void fill() override
     {
@@ -107,7 +103,8 @@ public:
 
     std::string info() override
     {
-        return "article: " + author + ", " + title + ", " + journal + ", " + year + ", " + volume + ", " + issue;
+        return "article: " + author + ", " + title + ", "
+            + journal + ", " + year + ", " + volume + ", " + issue;
     }
 };
 #endif
